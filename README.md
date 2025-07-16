@@ -77,9 +77,7 @@ This project aims to optimize the integration of solar energy into the power gri
 1. **Original Load Curve**:
    - Derived from historical peak load data (SLDC Odisha).
    - Normalized per square meter:
-     \[
-     \text{Load per m²} = \frac{\text{Monthly Peak Load (kW)}}{\text{Total Roof Area (m²)}}
-     \]
+     $\text{Load per m²} = \frac{\text{Monthly Peak Load (kW)}}{\text{Total Roof Area (m²)}}$
 2. **Net Load Curve**:
    The solar-adjusted net load is calculated as $P_{\text{net}}(t) = P_{\text{load}}(t) - P_{\text{solar}}(t)$.
 <img width="845" height="600" alt="Screenshot 2025-07-16 at 10 49 40 PM" src="https://github.com/user-attachments/assets/5425fbfa-0adb-49bc-bf01-c0ae5a7547b8" />
