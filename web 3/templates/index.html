@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Efficient Integration of Solar Power</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #181a1b;
+            color: #e0e0e0;
+            transition: background 0.3s, color 0.3s;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .app-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        #map-container {
+            flex: 2;
+            min-width: 300px;
+            background: #23272a;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background: #23272a;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+.chart-container {
+    background: #23272a;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+        .chart-container h3 {
+            margin-top: 0;
+            color: #e0e0e0;
+        }
+        canvas {
+            width: 100% !important;
+            height: calc(100% - 30px) !important;
+            background: transparent;
+        }
+        input[type="range"], input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            box-sizing: border-box;
+            background: #23272a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            transition: background 0.3s, color 0.3s;
+        }
+        button {
+            background: #222e50;
+            color: #e0e0e0;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1a233a;
+        }
+        #forecast-date {
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            background: #23272a;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        #building-details {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background: #23272a;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+        #building-details div {
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        .model-prediction {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 8px;
+            background: #2d223a;
+            border-radius: 4px;
+            border-left: 4px solid #b48be6;
+        }
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            #map-container, .control-panel {
+                max-width: 100%;
+            }
+        }
+        /* Dark mode for Leaflet controls */
+        .leaflet-control {
+            background: #23272a !important;
+            color: #e0e0e0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Efficient Integration of Solar Energy</h1>
+        <p>Analyze building roof areas and estimate solar power generation</p>
+    </div>
+    
+    <div class="app-container">
+        <div id="map-container">
+            <div id="map"></div>
+            
+            <div class="control-group">
+                <div id="forecast-date">Loading forecast date...</div>
+                <div class="input-group">
+                    <label for="date-picker">Select Date:</label>
+                    <input type="date" id="date-picker">
+                </div>
+                <button id="refresh-btn">↻ Refresh Data</button>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Solar Irradiance</h3>
+                <canvas id="irradianceChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Power Generation</h3>
+                <canvas id="powerChart"></canvas>
+            </div>
+		
+	    <div class="chart-container">
+    		<h3>Energy Demand</h3>
+    		<canvas id="demandChart"></canvas>
+            </div>
+            <div class="chart-container">
+    		<h3>Net Power (Generation - Demand)</h3>
+    		<canvas id="netPowerChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <h2>Controls</h2>
+            
+            <div class="input-group">
+                <label>Center Coordinates:</label>
+                <div id="center-coords">51.505, -0.09</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="radius-slider">Search Radius: <span id="radius-value">1000</span> meters</label>
+                <input type="range" id="radius-slider" min="100" max="5000" value="1000" step="100">
+            </div>
+            
+            <div class="input-group">
+                <button id="analyze-btn">Analyze Buildings</button>
+                <button id="clear-btn">Clear Results</button>
+            </div>
+            
+            <div class="input-group">
+                <h3>Building Analysis</h3>
+                <div id="building-count">Buildings found: 0</div>
+                <div id="total-area">Total roof area: 0 m²</div>
+                <div id="avg-area">Average roof area: 0 m²</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="percentage-input">Roof Usage Percentage (0-100):</label>
+                <input type="number" id="percentage-input" min="0" max="100" value="100">
+                <button id="calculate-adjusted-area">Calculate</button>
+                <div id="adjusted-area">Adjusted area: 0 m²</div>
+            </div>
+            
+            
+            <div class="input-group">
+                <div id="model-prediction" class="model-prediction">
+                    Model prediction: N/A
+                </div>
+            </div>
+            
+            <h3>Building Details</h3>
+            <div id="building-details">
+                No building data available
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
